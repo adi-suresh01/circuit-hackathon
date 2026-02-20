@@ -56,4 +56,4 @@ async def toggle_chaos(request: Request) -> dict[str, str | bool]:
     return {
         "request_id": request_id,
         "chaos_mode": _chaos_mode,
-    )
+    }
