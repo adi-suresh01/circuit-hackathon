@@ -4,12 +4,16 @@ from __future__ import annotations
 
 import random
 import re
+import time
 from collections import defaultdict
 from typing import Any
 
 from neo4j import GraphDatabase
 
 from app.models import BomItem, SubstituteCandidate
+from app.state import runtime_state
+
+CHAOS_QUERY_DELAY_SECONDS = 1.5
 
 
 class Neo4jGraph:
@@ -281,6 +285,9 @@ class Neo4jGraph:
         )
 
     def find_substitutes(self, item: BomItem, limit: int = 5) -> list[SubstituteCandidate]:
+        if runtime_state.is_chaos_mode():
+            time.sleep(CHAOS_QUERY_DELAY_SECONDS)
+
         normalized_type = self._normalize_type(item.type)
         normalized_value = self.normalize_value(item.value)
         normalized_package = self.normalize_package(item.package)
