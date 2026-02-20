@@ -13,9 +13,9 @@ from app.models import (
     SubstituteResult,
 )
 from app.services.neo4j_graph import Neo4jGraph
+from app.state import runtime_state
 
 router = APIRouter(prefix="/graph", tags=["graph"])
-_chaos_mode = False
 logger = logging.getLogger(__name__)
 graph_service = Neo4jGraph(
     uri=settings.neo4j_uri,
@@ -55,6 +55,7 @@ async def substitutes(
     payload: SubstituteRequest, request: Request
 ) -> SubstituteResponse:
     request_id = payload.request_id or str(getattr(request.state, "request_id", "unknown"))
+    chaos_active = runtime_state.is_chaos_mode()
     constraints = payload.constraints or {}
     raw_limit = constraints.get("limit", 5)
     try:
@@ -76,16 +77,20 @@ async def substitutes(
             detail="Unable to query substitutes. Verify Neo4j connectivity.",
         ) from exc
 
-    return SubstituteResponse(request_id=request_id, results=results)
+    warnings: list[str] = []
+    if chaos_active:
+        warnings.append(
+            "Chaos mode active: added artificial 1.5s substitute query delay."
+        )
+
+    return SubstituteResponse(request_id=request_id, results=results, warnings=warnings)
 
 
 @router.post("/chaos/toggle")
 async def toggle_chaos(request: Request) -> dict[str, str | bool]:
-    global _chaos_mode
-    _chaos_mode = not _chaos_mode
-
+    chaos_mode = runtime_state.toggle_chaos_mode()
     request_id = str(getattr(request.state, "request_id", "unknown"))
     return {
         "request_id": request_id,
-        "chaos_mode": _chaos_mode,
+        "chaos_mode": chaos_mode,
     }

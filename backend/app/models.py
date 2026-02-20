@@ -46,3 +46,4 @@ class SubstituteResult(BaseModel):
 class SubstituteResponse(BaseModel):
     request_id: str
     results: list[SubstituteResult] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
