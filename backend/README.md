@@ -42,7 +42,7 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `LOG_LEVEL`: Logging level (`INFO`, `DEBUG`, etc.).
 - `AWS_REGION`: Default AWS region.
 - `NEO4J_URI`: Neo4j connection URI.
-- `NEO4J_USER`: Neo4j username.
+- `NEO4J_USERNAME`: Neo4j username.
 - `NEO4J_PASSWORD`: Neo4j password.
 - `DDTRACE_ENABLED`: Enable Datadog tracing flag (`true`/`false`).
 
@@ -50,7 +50,7 @@ Python FastAPI scaffold for the circuit hackathon backend.
 
 - `GET /health` -> `{ "status": "ok" }`
 - `POST /extract` (multipart file field: `image`) -> `ExtractResponse`
-- `POST /graph/seed` (placeholder)
+- `POST /graph/seed` seeds demo `Part` and `SUBSTITUTES_FOR` data in Neo4j
 - `POST /graph/substitutes` -> `SubstituteResponse`
 - `POST /graph/chaos/toggle` (flips in-memory chaos flag)
 
