@@ -58,6 +58,8 @@ class DigiKeyAuth:
         with tracer.trace("supplier.digikey.token") as span:
             span.set_tag("supplier", "digikey")
             span.set_tag("bom_size", bom_size or 0)
+            span.set_tag("product_number", "")
+            span.set_tag("requested_quantity", 0)
 
             if not force_refresh and self._token_valid():
                 span.set_tag("cache_hit", True)
@@ -179,6 +181,7 @@ class DigiKeyClient:
         headers: dict[str, str],
         params: dict[str, Any] | None = None,
         json_body: dict[str, Any] | None = None,
+        bom_size: int | None = None,
     ) -> httpx.Response:
         try:
             response = await self._client.request(
@@ -197,7 +200,10 @@ class DigiKeyClient:
         if response.status_code != 401:
             return response
 
-        refreshed_token = await self._auth.get_token(force_refresh=True)
+        refreshed_token = await self._auth.get_token(
+            force_refresh=True,
+            bom_size=bom_size,
+        )
         retry_headers = self._build_headers(refreshed_token)
         try:
             retry_response = await self._client.request(
@@ -241,6 +247,7 @@ class DigiKeyClient:
                 headers=headers,
                 params=params,
                 json_body=json_body,
+                bom_size=bom_size,
             )
 
             span.set_tag("http.status_code", response.status_code)
