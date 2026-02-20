@@ -12,6 +12,7 @@ from fastapi import HTTPException
 
 from app.config import settings
 from app.tracing import tracer
+from app.utils.digikey import maybe_add_digikey_account_header, normalize_digikey_account_id
 
 
 def _rate_limited_exception(
@@ -136,7 +137,7 @@ class DigiKeyClient:
         self._host = settings.digikey_host()
         self._timeout_s = settings.digikey_http_timeout_s
         self._client_id = settings.digikey_client_id or ""
-        self._account_id = settings.digikey_account_id
+        self._account_id = normalize_digikey_account_id(settings.digikey_account_id)
 
         if not self._client_id or not (settings.digikey_client_secret or "").strip():
             raise HTTPException(
@@ -169,8 +170,7 @@ class DigiKeyClient:
             "X-DIGIKEY-Locale-Language": settings.digikey_locale_language,
             "X-DIGIKEY-Locale-Currency": settings.digikey_locale_currency,
         }
-        if self._account_id:
-            headers["X-DIGIKEY-Account-Id"] = self._account_id
+        maybe_add_digikey_account_header(headers, self._account_id)
         return headers
 
     async def _request_with_token_retry(
