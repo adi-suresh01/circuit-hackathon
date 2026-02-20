@@ -8,6 +8,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
 
+from app.utils.digikey import normalize_digikey_account_id
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
@@ -72,7 +74,9 @@ class Config(BaseModel):
             neo4j_password=os.getenv("NEO4J_PASSWORD", "circuit-dev-password"),
             digikey_client_id=os.getenv("DIGIKEY_CLIENT_ID"),
             digikey_client_secret=os.getenv("DIGIKEY_CLIENT_SECRET"),
-            digikey_account_id=os.getenv("DIGIKEY_ACCOUNT_ID"),
+            digikey_account_id=normalize_digikey_account_id(
+                os.getenv("DIGIKEY_ACCOUNT_ID")
+            ),
             digikey_use_sandbox=os.getenv("DIGIKEY_USE_SANDBOX", "false").lower()
             in {"1", "true", "yes", "on"},
             digikey_locale_site=os.getenv("DIGIKEY_LOCALE_SITE", "US"),
