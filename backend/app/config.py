@@ -54,6 +54,11 @@ class Config(BaseModel):
         env_name = os.getenv("APP_ENV", os.getenv("ENV", "local")).lower()
         if env_name not in {"prod", "production"}:
             load_dotenv(BASE_DIR / ".env", override=False)
+        digikey_timeout_raw = os.getenv("DIGIKEY_HTTP_TIMEOUT_S", "20")
+        try:
+            digikey_timeout_s = int(digikey_timeout_raw)
+        except (TypeError, ValueError):
+            digikey_timeout_s = 20
 
         return cls(
             app_name=os.getenv("APP_NAME", "Circuit Hackathon Backend"),
@@ -73,7 +78,7 @@ class Config(BaseModel):
             digikey_locale_site=os.getenv("DIGIKEY_LOCALE_SITE", "US"),
             digikey_locale_language=os.getenv("DIGIKEY_LOCALE_LANGUAGE", "en"),
             digikey_locale_currency=os.getenv("DIGIKEY_LOCALE_CURRENCY", "USD"),
-            digikey_http_timeout_s=int(os.getenv("DIGIKEY_HTTP_TIMEOUT_S", "20")),
+            digikey_http_timeout_s=digikey_timeout_s,
             minimax_api_key=os.getenv("MINIMAX_API_KEY"),
             minimax_base_url=os.getenv("MINIMAX_BASE_URL", "https://api.minimax.io"),
             minimax_model=os.getenv("MINIMAX_MODEL", "MiniMax-M2.5-highspeed"),
