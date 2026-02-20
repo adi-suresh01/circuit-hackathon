@@ -48,3 +48,8 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
 app.include_router(health.router)
 app.include_router(extract.router)
 app.include_router(graph.router)
+
+
+@app.on_event("shutdown")
+def shutdown_event() -> None:
+    graph.close_graph_service()
