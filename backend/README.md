@@ -44,6 +44,7 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `NEO4J_URI`: Neo4j connection URI.
 - `NEO4J_USERNAME`: Neo4j username.
 - `NEO4J_PASSWORD`: Neo4j password.
+  Use a non-default password (Neo4j rejects `neo4j` as the password).
 - `DD_SERVICE`: Datadog service name.
 - `DD_ENV`: Datadog environment.
 - `DD_VERSION`: Datadog version tag.
