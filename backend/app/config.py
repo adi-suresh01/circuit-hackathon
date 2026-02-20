@@ -19,7 +19,7 @@ class Config(BaseModel):
     log_level: str = Field(default="INFO")
     aws_region: str = Field(default="us-east-1")
     neo4j_uri: str = Field(default="bolt://localhost:7687")
-    neo4j_user: str = Field(default="neo4j")
+    neo4j_username: str = Field(default="neo4j")
     neo4j_password: str = Field(default="neo4j")
     ddtrace_enabled: bool = Field(default=False)
 
@@ -39,7 +39,9 @@ class Config(BaseModel):
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             aws_region=os.getenv("AWS_REGION", "us-east-1"),
             neo4j_uri=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
-            neo4j_user=os.getenv("NEO4J_USER", "neo4j"),
+            neo4j_username=os.getenv(
+                "NEO4J_USERNAME", os.getenv("NEO4J_USER", "neo4j")
+            ),
             neo4j_password=os.getenv("NEO4J_PASSWORD", "neo4j"),
             ddtrace_enabled=os.getenv("DDTRACE_ENABLED", "false").lower()
             in {"1", "true", "yes", "on"},
