@@ -5,6 +5,10 @@ from __future__ import annotations
 import logging
 from uuid import uuid4
 
+from app.tracing import configure_tracing, current_trace_id
+
+configure_tracing()
+
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
@@ -30,6 +34,7 @@ async def request_id_middleware(request: Request, call_next):
         request_id_ctx_var.reset(token)
 
     response.headers["X-Request-ID"] = request_id
+    response.headers["x-trace-id"] = current_trace_id()
     return response
 
 
