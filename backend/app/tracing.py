@@ -93,6 +93,8 @@ def current_trace_id() -> str:
     """Return the current trace id as a string, or '0' if absent."""
 
     span = tracer.current_span() if hasattr(tracer, "current_span") else None
+    if span is None and hasattr(tracer, "current_root_span"):
+        span = tracer.current_root_span()
     if span is None:
         return "0"
 
