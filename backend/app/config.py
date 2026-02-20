@@ -20,7 +20,7 @@ class Config(BaseModel):
     aws_region: str = Field(default="us-east-1")
     neo4j_uri: str = Field(default="bolt://localhost:7687")
     neo4j_username: str = Field(default="neo4j")
-    neo4j_password: str = Field(default="neo4j")
+    neo4j_password: str = Field(default="circuit-dev-password")
     dd_service: str = Field(default="circuit-backend")
     dd_env: str = Field(default="local")
     dd_version: str = Field(default="0.1.0")
@@ -47,7 +47,7 @@ class Config(BaseModel):
             neo4j_username=os.getenv(
                 "NEO4J_USERNAME", os.getenv("NEO4J_USER", "neo4j")
             ),
-            neo4j_password=os.getenv("NEO4J_PASSWORD", "neo4j"),
+            neo4j_password=os.getenv("NEO4J_PASSWORD", "circuit-dev-password"),
             dd_service=os.getenv("DD_SERVICE", "circuit-backend"),
             dd_env=os.getenv("DD_ENV", os.getenv("APP_ENV", "local")),
             dd_version=os.getenv("DD_VERSION", "0.1.0"),
