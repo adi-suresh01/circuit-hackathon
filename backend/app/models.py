@@ -2,34 +2,47 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, Field
 
 
-class ExtractRequest(BaseModel):
-    text: str = Field(..., min_length=1)
+class BomItem(BaseModel):
+    refdes: str | None = None
+    type: str
+    value: str
+    package: str | None = None
+    qty: int = Field(default=1, ge=1)
+    confidence: float | None = Field(default=None, ge=0, le=1)
+    notes: str | None = None
 
 
 class ExtractResponse(BaseModel):
-    entities: list[str] = Field(default_factory=list)
+    request_id: str
+    bom: list[BomItem] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
 
 
-class GraphNode(BaseModel):
-    id: str
-    label: str | None = None
+class SubstituteRequest(BaseModel):
+    request_id: str | None = None
+    bom: list[BomItem] = Field(default_factory=list)
+    constraints: dict[str, Any] | None = None
 
 
-class GraphEdge(BaseModel):
-    source: str
-    target: str
-    relation: str | None = None
+class SubstituteCandidate(BaseModel):
+    mpn: str
+    manufacturer: str | None = None
+    value: str
+    package: str
+    score: int = Field(ge=0, le=100)
+    reason: str
 
 
-class GraphRequest(BaseModel):
-    nodes: list[GraphNode] = Field(default_factory=list)
-    edges: list[GraphEdge] = Field(default_factory=list)
+class SubstituteResult(BaseModel):
+    original: BomItem
+    candidates: list[SubstituteCandidate] = Field(default_factory=list)
 
 
-class GraphResponse(BaseModel):
-    status: str = "accepted"
-    node_count: int
-    edge_count: int
+class SubstituteResponse(BaseModel):
+    request_id: str
+    results: list[SubstituteResult] = Field(default_factory=list)
