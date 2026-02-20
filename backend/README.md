@@ -44,7 +44,12 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `NEO4J_URI`: Neo4j connection URI.
 - `NEO4J_USERNAME`: Neo4j username.
 - `NEO4J_PASSWORD`: Neo4j password.
-- `DDTRACE_ENABLED`: Enable Datadog tracing flag (`true`/`false`).
+- `DD_SERVICE`: Datadog service name.
+- `DD_ENV`: Datadog environment.
+- `DD_VERSION`: Datadog version tag.
+- `DD_AGENT_HOST`: Datadog agent hostname.
+- `DD_TRACE_ENABLED`: Enable Datadog tracing (`true`/`false`).
+- `DD_LOGS_INJECTION`: Enable Datadog log injection (`true`/`false`).
 
 ## Endpoints
 
@@ -56,6 +61,8 @@ Python FastAPI scaffold for the circuit hackathon backend.
 
 When chaos mode is enabled, substitute lookups add a 1.5s artificial delay and
 `SubstituteResponse.warnings` includes a chaos warning.
+
+All responses include `x-trace-id` and `X-Request-ID` headers.
 
 ## Docker
 
