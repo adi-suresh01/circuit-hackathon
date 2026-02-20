@@ -68,8 +68,15 @@ def configure_tracing() -> None:
             ddtrace_config.logs_injection = logs_injection
 
     agent_host = os.getenv("DD_AGENT_HOST")
-    if agent_host and hasattr(tracer, "configure"):
-        tracer.configure(hostname=agent_host)
+    if hasattr(tracer, "configure"):
+        try:
+            if agent_host:
+                tracer.configure(enabled=trace_enabled, hostname=agent_host)
+            else:
+                tracer.configure(enabled=trace_enabled)
+        except TypeError:
+            if agent_host:
+                tracer.configure(hostname=agent_host)
 
     _configured = True
 
