@@ -49,8 +49,10 @@ Python FastAPI scaffold for the circuit hackathon backend.
 ## Endpoints
 
 - `GET /health` -> `{ "status": "ok" }`
-- `POST /extract`
-- `POST /graph`
+- `POST /extract` (multipart file field: `image`) -> `ExtractResponse`
+- `POST /graph/seed` (placeholder)
+- `POST /graph/substitutes` -> `SubstituteResponse`
+- `POST /graph/chaos/toggle` (flips in-memory chaos flag)
 
 ## Docker
 

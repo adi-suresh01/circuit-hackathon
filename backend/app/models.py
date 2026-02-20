@@ -25,7 +25,7 @@ class ExtractResponse(BaseModel):
 
 class SubstituteRequest(BaseModel):
     request_id: str | None = None
-    bom: list[BomItem] = Field(default_factory=list)
+    bom: list[BomItem]
     constraints: dict[str, Any] | None = None
 
 
