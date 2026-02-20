@@ -54,6 +54,9 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `POST /graph/substitutes` -> `SubstituteResponse`
 - `POST /graph/chaos/toggle` (flips in-memory chaos flag)
 
+When chaos mode is enabled, substitute lookups add a 1.5s artificial delay and
+`SubstituteResponse.warnings` includes a chaos warning.
+
 ## Docker
 
 Build and run with Docker Compose:
