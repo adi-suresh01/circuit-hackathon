@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
 from typing import Any
+
+from dotenv import load_dotenv
 
 try:
     from ddtrace import config as ddtrace_config
@@ -48,6 +51,7 @@ if tracer is None:
     tracer = _NoopTracer()
 
 _configured = False
+BASE_DIR = Path(__file__).resolve().parent.parent
 
 
 def configure_tracing() -> None:
@@ -56,6 +60,10 @@ def configure_tracing() -> None:
     global _configured
     if _configured:
         return
+
+    env_name = os.getenv("APP_ENV", os.getenv("ENV", "local")).lower()
+    if env_name not in {"prod", "production"}:
+        load_dotenv(BASE_DIR / ".env", override=False)
 
     trace_enabled = _is_truthy(
         os.getenv("DD_TRACE_ENABLED", os.getenv("DDTRACE_ENABLED", "false"))
