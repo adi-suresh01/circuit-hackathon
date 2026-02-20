@@ -45,6 +45,14 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `NEO4J_USERNAME`: Neo4j username.
 - `NEO4J_PASSWORD`: Neo4j password.
   Use a non-default password (Neo4j rejects `neo4j` as the password).
+- `DIGIKEY_CLIENT_ID`: Digi-Key OAuth client id.
+- `DIGIKEY_CLIENT_SECRET`: Digi-Key OAuth client secret.
+- `DIGIKEY_ACCOUNT_ID`: Optional Digi-Key account id for account pricing contexts.
+- `DIGIKEY_USE_SANDBOX`: `true` uses `sandbox-api.digikey.com`; `false` uses production host.
+- `DIGIKEY_LOCALE_SITE`: Digi-Key locale site (default `US`).
+- `DIGIKEY_LOCALE_LANGUAGE`: Digi-Key locale language (default `en`).
+- `DIGIKEY_LOCALE_CURRENCY`: Digi-Key locale currency (default `USD`).
+- `DIGIKEY_HTTP_TIMEOUT_S`: Digi-Key HTTP timeout in seconds.
 - `MINIMAX_API_KEY`: MiniMax API key (required when narrator is enabled).
 - `MINIMAX_BASE_URL`: MiniMax API base URL (`https://api.minimax.io`).
 - `MINIMAX_MODEL`: MiniMax model name (default `MiniMax-M2.5-highspeed`).
@@ -65,6 +73,7 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `POST /graph/substitutes` -> `SubstituteResponse`
 - `POST /graph/chaos/toggle` (flips in-memory chaos flag)
 - `POST /incident/narrate` -> `NarrateResponse` (MiniMax-backed, requires enable flag + API key)
+- `POST /quote/digikey` -> `QuoteResponse` (Digi-Key supplier offers and chosen line pricing)
 
 When chaos mode is enabled, substitute lookups add a 1.5s artificial delay and
 `SubstituteResponse.warnings` includes a chaos warning.
@@ -94,6 +103,44 @@ ECS enablement:
 If narrator is disabled, endpoint returns `400 Narrator disabled`.
 When enabled, Datadog traces include span `minimax.narrate` with tags:
 `narrator.model`, `chaos_mode`, and `endpoint`.
+
+## Digi-Key Integration
+
+Digi-Key Product Information v4 integration uses OAuth `client_credentials` and
+calls Product Search + PricingByQuantity endpoints.
+
+Required variables:
+
+- `DIGIKEY_CLIENT_ID`
+- `DIGIKEY_CLIENT_SECRET`
+
+Optional variables:
+
+- `DIGIKEY_ACCOUNT_ID`
+- `DIGIKEY_USE_SANDBOX`
+- `DIGIKEY_LOCALE_SITE`
+- `DIGIKEY_LOCALE_LANGUAGE`
+- `DIGIKEY_LOCALE_CURRENCY`
+- `DIGIKEY_HTTP_TIMEOUT_S`
+
+Sandbox vs production host:
+
+- `DIGIKEY_USE_SANDBOX=true` -> `sandbox-api.digikey.com`
+- `DIGIKEY_USE_SANDBOX=false` -> `api.digikey.com`
+
+Example quote request:
+
+```bash
+curl -X POST http://127.0.0.1:8000/quote/digikey \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "bom": [
+      {"type":"regulator","value":"LM7805","qty":1}
+    ],
+    "prefer_in_stock": true,
+    "exclude_marketplace": true
+  }'
+```
 
 ## Docker
 
