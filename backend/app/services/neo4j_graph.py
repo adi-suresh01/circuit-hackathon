@@ -12,6 +12,7 @@ from neo4j import GraphDatabase
 
 from app.models import BomItem, SubstituteCandidate
 from app.state import runtime_state
+from app.tracing import tracer
 
 CHAOS_QUERY_DELAY_SECONDS = 1.5
 
@@ -285,72 +286,85 @@ class Neo4jGraph:
         )
 
     def find_substitutes(self, item: BomItem, limit: int = 5) -> list[SubstituteCandidate]:
-        if runtime_state.is_chaos_mode():
-            time.sleep(CHAOS_QUERY_DELAY_SECONDS)
+        chaos_mode = runtime_state.is_chaos_mode()
 
-        normalized_type = self._normalize_type(item.type)
-        normalized_value = self.normalize_value(item.value)
-        normalized_package = self.normalize_package(item.package)
+        with tracer.trace("neo4j.find_substitutes") as span:
+            span.set_tag("item.type", item.type)
+            span.set_tag("item.package", item.package or "")
+            span.set_tag("chaos_mode", chaos_mode)
 
-        query_args = {
-            "type": normalized_type,
-            "norm_value": normalized_value,
-            "norm_package": normalized_package,
-            "limit": limit,
-        }
+            if chaos_mode:
+                time.sleep(CHAOS_QUERY_DELAY_SECONDS)
 
-        direct_query = """
-        MATCH (candidate:Part)-[rel:SUBSTITUTES_FOR]->(target:Part)
-        WHERE toLower(target.type) = $type
-          AND ($norm_value = '' OR target.norm_value = $norm_value)
-          AND ($norm_package = '' OR target.norm_package = $norm_package)
-        RETURN candidate.mpn AS mpn,
-               candidate.manufacturer AS manufacturer,
-               candidate.type AS type,
-               candidate.value AS value,
-               candidate.package AS package,
-               rel.reason AS rel_reason,
-               rel.confidence AS rel_confidence
-        ORDER BY rel.confidence DESC, candidate.mpn
-        LIMIT $limit
-        """
+            normalized_type = self._normalize_type(item.type)
+            normalized_value = self.normalize_value(item.value)
+            normalized_package = self.normalize_package(item.package)
 
-        fallback_query = """
-        MATCH (candidate:Part)
-        WHERE toLower(candidate.type) = $type
-          AND ($norm_value = '' OR candidate.norm_value = $norm_value)
-          AND ($norm_package = '' OR candidate.norm_package = $norm_package)
-        RETURN candidate.mpn AS mpn,
-               candidate.manufacturer AS manufacturer,
-               candidate.type AS type,
-               candidate.value AS value,
-               candidate.package AS package,
-               null AS rel_reason,
-               null AS rel_confidence
-        ORDER BY candidate.mpn
-        LIMIT $limit
-        """
+            query_args = {
+                "type": normalized_type,
+                "norm_value": normalized_value,
+                "norm_package": normalized_package,
+                "limit": limit,
+            }
 
-        with self._driver.session() as session:
-            direct_records = [dict(record) for record in session.run(direct_query, **query_args)]
-            if direct_records:
-                return [
-                    self._candidate_from_record(
-                        item=item,
-                        record=record,
-                        fallback_reason="Direct substitute match",
-                    )
-                    for record in direct_records
+            direct_query = """
+            MATCH (candidate:Part)-[rel:SUBSTITUTES_FOR]->(target:Part)
+            WHERE toLower(target.type) = $type
+              AND ($norm_value = '' OR target.norm_value = $norm_value)
+              AND ($norm_package = '' OR target.norm_package = $norm_package)
+            RETURN candidate.mpn AS mpn,
+                   candidate.manufacturer AS manufacturer,
+                   candidate.type AS type,
+                   candidate.value AS value,
+                   candidate.package AS package,
+                   rel.reason AS rel_reason,
+                   rel.confidence AS rel_confidence
+            ORDER BY rel.confidence DESC, candidate.mpn
+            LIMIT $limit
+            """
+
+            fallback_query = """
+            MATCH (candidate:Part)
+            WHERE toLower(candidate.type) = $type
+              AND ($norm_value = '' OR candidate.norm_value = $norm_value)
+              AND ($norm_package = '' OR candidate.norm_package = $norm_package)
+            RETURN candidate.mpn AS mpn,
+                   candidate.manufacturer AS manufacturer,
+                   candidate.type AS type,
+                   candidate.value AS value,
+                   candidate.package AS package,
+                   null AS rel_reason,
+                   null AS rel_confidence
+            ORDER BY candidate.mpn
+            LIMIT $limit
+            """
+
+            candidates: list[SubstituteCandidate]
+            with self._driver.session() as session:
+                direct_records = [
+                    dict(record) for record in session.run(direct_query, **query_args)
                 ]
+                if direct_records:
+                    candidates = [
+                        self._candidate_from_record(
+                            item=item,
+                            record=record,
+                            fallback_reason="Direct substitute match",
+                        )
+                        for record in direct_records
+                    ]
+                else:
+                    fallback_records = [
+                        dict(record) for record in session.run(fallback_query, **query_args)
+                    ]
+                    candidates = [
+                        self._candidate_from_record(
+                            item=item,
+                            record=record,
+                            fallback_reason="Matched by type, package, and value",
+                        )
+                        for record in fallback_records
+                    ]
 
-            fallback_records = [
-                dict(record) for record in session.run(fallback_query, **query_args)
-            ]
-            return [
-                self._candidate_from_record(
-                    item=item,
-                    record=record,
-                    fallback_reason="Matched by type, package, and value",
-                )
-                for record in fallback_records
-            ]
+            span.set_tag("candidates_count", len(candidates))
+            return candidates
