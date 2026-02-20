@@ -73,3 +73,48 @@ class NarrateResponse(BaseModel):
     request_id: str
     trace_id: str | None = None
     narrative: str
+
+
+class DigiKeyKeywordSearchRequest(BaseModel):
+    keywords: str
+    limit: int = 5
+    offset: int = 0
+    in_stock: bool = True
+    exclude_marketplace: bool = True
+
+
+class SupplierOffer(BaseModel):
+    supplier: Literal["digikey"]
+    digikey_product_number: str | None = None
+    manufacturer_part_number: str | None = None
+    manufacturer: str | None = None
+    description: str | None = None
+    currency: str | None = None
+    unit_price: float | None = None
+    extended_price: float | None = None
+    quantity_priced: int | None = None
+    quantity_available: int | None = None
+    marketplace: bool | None = None
+    source: Literal["pricingbyquantity", "productpricing", "keywordsearch"]
+    url: str | None = None
+
+
+class QuoteLineItem(BaseModel):
+    bom_item: BomItem
+    offers: list[SupplierOffer] = Field(default_factory=list)
+    chosen: SupplierOffer | None = None
+    notes: list[str] = Field(default_factory=list)
+
+
+class QuoteRequest(BaseModel):
+    request_id: str | None = None
+    bom: list[BomItem]
+    prefer_in_stock: bool = True
+    exclude_marketplace: bool = True
+
+
+class QuoteResponse(BaseModel):
+    request_id: str
+    lines: list[QuoteLineItem] = Field(default_factory=list)
+    totals: dict[str, float]
+    warnings: list[str] = Field(default_factory=list)
