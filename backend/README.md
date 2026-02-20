@@ -54,6 +54,7 @@ Python FastAPI scaffold for the circuit hackathon backend.
 ## Endpoints
 
 - `GET /health` -> `{ "status": "ok" }`
+- `GET /ready` -> `200` when Neo4j is reachable, else `503`
 - `POST /extract` (multipart file field: `image`) -> `ExtractResponse`
 - `POST /graph/seed` seeds demo `Part` and `SUBSTITUTES_FOR` data in Neo4j
 - `POST /graph/substitutes` -> `SubstituteResponse`
@@ -71,4 +72,12 @@ Build and run with Docker Compose:
 ```bash
 cd backend
 docker compose up --build
+```
+
+Run backend container directly:
+
+```bash
+cd backend
+docker build -t circuit-backend .
+docker run --rm -p 8080:8080 circuit-backend
 ```
