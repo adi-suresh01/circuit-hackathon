@@ -27,7 +27,6 @@ class Neo4jGraph:
             return ""
 
         normalized = value.strip().lower()
-        normalized = normalized.replace("μ", "u").replace("ω", "ohm")
         normalized = normalized.replace("ohms", "ohm")
         normalized = re.sub(r"[\s_-]+", "", normalized)
         return normalized
@@ -62,7 +61,6 @@ class Neo4jGraph:
         resistor_values = ["1k", "2.2k", "4.7k", "10k", "22k", "47k", "100k", "1M"]
         capacitor_values = ["10nF", "47nF", "100nF", "1uF", "4.7uF", "10uF", "22uF"]
         regulator_values = ["1.8V", "3.3V", "5V", "12V"]
-        packages = ["0402", "0603", "0805", "SOT-23", "SOT-223"]
 
         parts: list[dict[str, Any]] = []
         sequence = 1
@@ -276,8 +274,8 @@ class Neo4jGraph:
         return SubstituteCandidate(
             mpn=str(record["mpn"]),
             manufacturer=record.get("manufacturer"),
-            value=str(record.get("value", "")),
-            package=str(record.get("package", "unknown")),
+            value=str(record.get("value") or ""),
+            package=str(record.get("package") or "unknown"),
             score=score,
             reason=reason,
         )
