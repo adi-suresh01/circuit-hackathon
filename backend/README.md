@@ -47,7 +47,7 @@ Python FastAPI scaffold for the circuit hackathon backend.
   Use a non-default password (Neo4j rejects `neo4j` as the password).
 - `DIGIKEY_CLIENT_ID`: Digi-Key OAuth client id.
 - `DIGIKEY_CLIENT_SECRET`: Digi-Key OAuth client secret.
-- `DIGIKEY_ACCOUNT_ID`: Optional Digi-Key account id for account pricing contexts.
+- `DIGIKEY_ACCOUNT_ID`: Optional Digi-Key account id for account pricing contexts (`""` or `0` omits header).
 - `DIGIKEY_USE_SANDBOX`: `true` uses `sandbox-api.digikey.com`; `false` uses production host.
 - `DIGIKEY_LOCALE_SITE`: Digi-Key locale site (default `US`).
 - `DIGIKEY_LOCALE_LANGUAGE`: Digi-Key locale language (default `en`).
@@ -116,7 +116,7 @@ Required variables:
 
 Optional variables:
 
-- `DIGIKEY_ACCOUNT_ID`
+- `DIGIKEY_ACCOUNT_ID` (`""` or `0` means header is not sent)
 - `DIGIKEY_USE_SANDBOX`
 - `DIGIKEY_LOCALE_SITE`
 - `DIGIKEY_LOCALE_LANGUAGE`
