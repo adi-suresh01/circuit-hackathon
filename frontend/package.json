@@ -9,6 +9,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@copilotkit/react-core": "^1.51.4",
+    "@copilotkit/react-ui": "^1.51.4",
     "framer-motion": "^12.34.3",
     "lucide-react": "^0.575.0",
     "react": "^18.2.0",

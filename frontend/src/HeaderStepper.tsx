@@ -1,61 +1,16 @@
 import React, { useMemo } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { Upload, ScanSearch, Sparkles } from 'lucide-react'
+import { Upload, ScanSearch, Sparkles, Check } from 'lucide-react'
+import './styles/ui.css'
 
-/* Small global CSS for header-stepper: noise, pulse, connector fill, reduced-motion */
-const headerStepperStyles = `
-  .header-stepper-bg {
-    background: linear-gradient(180deg, #f8fafc 0%, #f1f5f9 50%, #e2e8f0 100%);
-    position: relative;
-    overflow: hidden;
-  }
-  .header-stepper-glow {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.35;
-    pointer-events: none;
-  }
-  .header-stepper-glow-1 {
-    width: 320px;
-    height: 320px;
-    background: #a5b4fc;
-    top: -120px;
-    left: 10%;
-  }
-  .header-stepper-glow-2 {
-    width: 280px;
-    height: 280px;
-    background: #c4b5fd;
-    top: -80px;
-    right: 15%;
-  }
-  .header-stepper-noise {
-    position: absolute;
-    inset: 0;
-    opacity: 0.06;
-    pointer-events: none;
-    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  }
-  .header-stepper-glass {
-    position: relative;
-    z-index: 1;
-    background: rgba(255, 255, 255, 0.72);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid rgba(148, 163, 184, 0.35);
-  }
+const pulseStyles = `
   @keyframes header-stepper-pulse {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.92; transform: scale(1.02); }
   }
   @media (prefers-reduced-motion: reduce) {
-    .header-stepper-pulse-active {
-      animation: none !important;
-    }
-    .header-stepper-connector-fill {
-      transition: none !important;
-    }
+    .header-stepper-pulse-active { animation: none !important; }
+    .header-stepper-connector-fill { transition: none !important; }
   }
 `
 
@@ -93,13 +48,13 @@ export function HeaderStepper({
 
   return (
     <>
-      <style>{headerStepperStyles}</style>
-      <div className="header-stepper-bg">
-        <div className="header-stepper-glow header-stepper-glow-1" aria-hidden />
-        <div className="header-stepper-glow header-stepper-glow-2" aria-hidden />
-        <div className="header-stepper-noise" aria-hidden />
+      <style>{pulseStyles}</style>
+      <div className="ui-header-bg">
+        <div className="ui-header-glow ui-header-glow-1" aria-hidden />
+        <div className="ui-header-glow ui-header-glow-2" aria-hidden />
+        <div className="ui-header-noise" aria-hidden />
 
-        <header className="header-stepper-glass">
+        <header className="ui-header-glass">
           <div
             className={`mx-auto ${contentMaxWidth} px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4`}
           >
@@ -147,7 +102,11 @@ export function HeaderStepper({
                         aria-current={isActive ? 'step' : undefined}
                         aria-label={`Step ${step.key}: ${step.label}`}
                       >
-                        <Icon className="w-5 h-5" strokeWidth={2.25} aria-hidden />
+                        {isPast ? (
+                          <Check className="w-5 h-5" strokeWidth={2.5} aria-hidden />
+                        ) : (
+                          <Icon className="w-5 h-5" strokeWidth={2.25} aria-hidden />
+                        )}
                       </motion.button>
                       <span
                         className={`

@@ -1,6 +1,8 @@
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { extractImage, getJobStatus, getSubstitutes, exportBomToCsv } from './api.js'
 import HeaderStepper from './HeaderStepper'
+import CopilotBridge from './components/CopilotBridge'
 
 const POLL_INTERVAL_MS = 1500
 
@@ -25,9 +27,13 @@ function UploadCard({ file, onFileChange, chaosMode, onChaosToggle, onExtract, e
     onExtract(file)
   }
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-800 mb-1">Upload schematic</h2>
-      <p className="text-sm text-slate-500 mb-4">Supported formats: PNG, JPG, JPEG, GIF, WebP</p>
+    <motion.div
+      className="rounded-2xl border border-slate-200/80 bg-white p-7 shadow-sm"
+      whileHover={{ y: -2, boxShadow: '0 4px 14px rgba(0,0,0,0.06)' }}
+      transition={{ duration: 0.2 }}
+    >
+      <h2 className="text-lg font-semibold text-slate-800 mb-1">Upload schematic</h2>
+      <p className="text-sm text-slate-500 mb-5">Supported formats: PNG, JPG, JPEG, GIF, WebP</p>
       <div className="flex flex-wrap items-center gap-4 gap-y-3">
         <div className="flex flex-col gap-1">
           <input
@@ -37,39 +43,58 @@ function UploadCard({ file, onFileChange, chaosMode, onChaosToggle, onExtract, e
             className="hidden"
             onChange={(e) => onFileChange(e.target.files?.[0])}
           />
-          <button
+          <motion.button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="rounded-lg bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 hover:bg-slate-200 border border-slate-200"
+            className="rounded-xl bg-slate-100 px-4 py-2.5 text-sm font-medium text-slate-700 border border-slate-200 hover:bg-slate-200 hover:border-slate-300"
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
           >
             Choose image
-          </button>
+          </motion.button>
           {file && (
             <span className="text-xs text-slate-500 truncate max-w-[220px]" title={file.name}>
               {file.name}
             </span>
           )}
         </div>
-        <label className="flex items-center gap-2 cursor-pointer min-h-[42px]">
-          <input type="checkbox" checked={chaosMode} onChange={(e) => onChaosToggle(e.target.checked)} className="rounded border-slate-300" />
-          <span className="text-sm text-slate-600">Chaos Mode</span>
-        </label>
-        <button
+
+        <div className="flex flex-col gap-0.5">
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              role="switch"
+              aria-checked={chaosMode}
+              onClick={() => onChaosToggle(!chaosMode)}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2 ${chaosMode ? 'bg-indigo-600' : 'bg-slate-200'}`}
+            >
+              <span
+                className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow ring-0 transition-transform ${chaosMode ? 'translate-x-5' : 'translate-x-0.5'}`}
+              />
+            </button>
+            <span className="text-sm font-medium text-slate-700">Chaos Mode</span>
+          </div>
+          <p className="text-xs text-slate-400">Simulate failures or fewer substitutes</p>
+        </div>
+
+        <motion.button
           type="button"
           onClick={handleExtract}
           disabled={disabled || !file || extracting}
-          className="rounded-lg bg-indigo-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-md shadow-indigo-200/50 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:from-indigo-600 disabled:hover:to-violet-600"
+          whileHover={disabled || !file || extracting ? {} : { y: -2, boxShadow: '0 6px 20px rgba(99, 102, 241, 0.35)' }}
+          whileTap={disabled || !file || extracting ? {} : { scale: 0.98 }}
         >
           {extracting ? 'Analyzing…' : 'Analyze'}
-        </button>
+        </motion.button>
       </div>
       {previewUrl && (
-        <div className="mt-4 pt-4 border-t border-slate-100">
+        <div className="mt-5 pt-5 border-t border-slate-100">
           <p className="text-xs font-medium text-slate-500 mb-2">Preview</p>
-          <img src={previewUrl} alt="Schematic preview" className="max-h-36 rounded-lg border border-slate-200 object-contain bg-slate-50" />
+          <img src={previewUrl} alt="Schematic preview" className="max-h-36 rounded-xl border border-slate-200 object-contain bg-slate-50" />
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -82,7 +107,11 @@ function JobStatusCard({ jobId, status, progress, lastUpdated, logEntries }) {
     failed: 'bg-red-100 text-red-800',
   }[status] || 'bg-slate-100 text-slate-800'
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+    <motion.div
+      className="rounded-2xl border border-slate-200/80 bg-white p-6 shadow-sm"
+      whileHover={{ y: -2, boxShadow: '0 4px 14px rgba(0,0,0,0.06)' }}
+      transition={{ duration: 0.2 }}
+    >
       <h2 className="text-base font-semibold text-slate-800 mb-1">Job status</h2>
       <div className="flex flex-wrap gap-3 items-center mb-3">
         <span className="text-xs font-mono text-slate-500">job_id: {jobId}</span>
@@ -100,7 +129,7 @@ function JobStatusCard({ jobId, status, progress, lastUpdated, logEntries }) {
           </ul>
         </div>
       )}
-    </div>
+    </motion.div>
   )
 }
 
@@ -166,7 +195,12 @@ function BOMRow({ item, onFetchSubstitutes }) {
 function BOMList({ items, onFetchSubstitutes }) {
   if (!items?.length) return null
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <motion.div
+      className="rounded-2xl border border-slate-200/80 bg-white shadow-sm overflow-hidden"
+      initial={false}
+      whileHover={{ y: -2, boxShadow: '0 4px 14px rgba(0,0,0,0.06)' }}
+      transition={{ duration: 0.2 }}
+    >
       <div className="px-6 py-4 border-b border-slate-200 bg-slate-50">
         <h2 className="text-base font-semibold text-slate-800">BOM results</h2>
         <p className="text-sm text-slate-500 mt-0.5">{items.length} item(s)</p>
@@ -176,190 +210,11 @@ function BOMList({ items, onFetchSubstitutes }) {
           <BOMRow key={i} item={item} onFetchSubstitutes={onFetchSubstitutes} />
         ))}
       </div>
-    </div>
+    </motion.div>
   )
 }
 
-const COMPONENT_TYPES = ['Resistor', 'Capacitor', 'Inductor', 'IC', 'Connector', 'Diode', 'Transistor', 'Other']
-
-// Converts table row to pipeline BOM item (same shape as extract/manual JSON).
-// Row uses "pkg" not "package" to avoid reserved-word issues in JS.
-function rowToBomItem(row, index) {
-  const ref = (row.ref || '').trim() || `Part-${index + 1}`
-  const qty = parseInt(row.quantity, 10)
-  const pkg = row.pkg ?? row.package ?? ''
-  return {
-    key: ref,
-    refdes: ref,
-    refs: [ref],
-    type: row.componentType || 'Other',
-    description: row.componentType ? ([row.componentType, row.value].filter(Boolean).join(' ') || ref) : ref,
-    value: row.value || '',
-    footprint: pkg,
-    package: pkg,
-    quantity: Number.isFinite(qty) && qty > 0 ? qty : 1,
-  }
-}
-
-function ManualBOMSection({
-  tableRows,
-  setTableRows,
-  onUseFromTable,
-  manualBomJson,
-  setManualBomJson,
-  onUseFromJson,
-  showToast,
-}) {
-  const [advancedOpen, setAdvancedOpen] = useState(false)
-
-  const addRow = () => setTableRows((prev) => [...prev, { id: Math.random().toString(36).slice(2), ref: '', componentType: '', value: '', pkg: '', quantity: '' }])
-  const removeRow = (i) => setTableRows((prev) => prev.filter((_, idx) => idx !== i))
-  const updateRow = (i, field, value) =>
-    setTableRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, [field]: value } : r)))
-
-  const handleUseFromTable = () => {
-    const items = tableRows.map((r, i) => rowToBomItem(r, i)).filter((item) => item.quantity >= 1)
-    if (!items.length) {
-      showToast('Add at least one row with quantity ≥ 1.', true)
-      return
-    }
-    onUseFromTable(items)
-  }
-
-  return (
-    <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
-      <h2 className="text-base font-semibold text-slate-800 mb-1">Manual BOM fallback</h2>
-      <p className="text-sm text-slate-500 mb-4">Add parts in the table below, then click &quot;Use manual BOM&quot; to use them as the BOM.</p>
-
-      <div className="overflow-x-auto">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="border-b border-slate-200">
-              <th className="text-left py-2 pr-2 font-medium text-slate-600">Ref</th>
-              <th className="text-left py-2 pr-2 font-medium text-slate-600">Component type</th>
-              <th className="text-left py-2 pr-2 font-medium text-slate-600">Value</th>
-              <th className="text-left py-2 pr-2 font-medium text-slate-600">Package</th>
-              <th className="text-left py-2 pr-2 font-medium text-slate-600">Quantity</th>
-              <th className="w-20 py-2" />
-            </tr>
-          </thead>
-          <tbody>
-            {tableRows.map((row, i) => (
-              <tr key={row.id ?? i} className="border-b border-slate-100">
-                <td className="py-1.5 pr-2">
-                  <input
-                    type="text"
-                    value={row.ref ?? ''}
-                    onChange={(e) => updateRow(i, 'ref', e.target.value)}
-                    placeholder="e.g. R1"
-                    className="w-full rounded border border-slate-200 px-2 py-1 text-slate-800"
-                  />
-                </td>
-                <td className="py-1.5 pr-2">
-                  <select
-                    value={row.componentType ?? ''}
-                    onChange={(e) => updateRow(i, 'componentType', e.target.value)}
-                    className="w-full rounded border border-slate-200 px-2 py-1 text-slate-800 bg-white"
-                  >
-                    <option value="">Select…</option>
-                    {COMPONENT_TYPES.map((t) => (
-                      <option key={t} value={t}>{t}</option>
-                    ))}
-                  </select>
-                </td>
-                <td className="py-1.5 pr-2">
-                  <input
-                    type="text"
-                    value={row.value ?? ''}
-                    onChange={(e) => updateRow(i, 'value', e.target.value)}
-                    placeholder="e.g. 10k"
-                    className="w-full rounded border border-slate-200 px-2 py-1 text-slate-800"
-                  />
-                </td>
-                <td className="py-1.5 pr-2">
-                  <input
-                    type="text"
-                    value={row.pkg ?? ''}
-                    onChange={(e) => updateRow(i, 'pkg', e.target.value)}
-                    placeholder="e.g. 0603"
-                    className="w-full rounded border border-slate-200 px-2 py-1 text-slate-800"
-                  />
-                </td>
-                <td className="py-1.5 pr-2">
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={row.quantity ?? ''}
-                    onChange={(e) => updateRow(i, 'quantity', e.target.value)}
-                    placeholder="1"
-                    className="w-16 rounded border border-slate-200 px-2 py-1 text-slate-800"
-                  />
-                </td>
-                <td className="py-1.5 pl-2">
-                  <button
-                    type="button"
-                    onClick={() => removeRow(i)}
-                    className="text-xs text-red-600 hover:text-red-700"
-                  >
-                    Remove
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex flex-wrap gap-3 mt-4">
-        <button
-          type="button"
-          onClick={addRow}
-          className="rounded-lg bg-slate-100 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-200"
-        >
-          + Add part
-        </button>
-        <button
-          type="button"
-          onClick={handleUseFromTable}
-          className="rounded-lg bg-slate-600 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
-        >
-          Use manual BOM
-        </button>
-      </div>
-
-      <div className="mt-6 border-t border-slate-200 pt-4">
-        <button
-          type="button"
-          onClick={() => setAdvancedOpen((o) => !o)}
-          className="flex items-center gap-2 text-sm font-medium text-slate-600 hover:text-slate-800"
-        >
-          <span className="text-slate-400">{advancedOpen ? '▼' : '▶'}</span>
-          Advanced (JSON)
-        </button>
-        {advancedOpen && (
-          <div className="mt-3">
-            <p className="text-xs text-slate-500 mb-2">Paste BOM JSON (array or object with items) to load as manual BOM.</p>
-            <textarea
-              value={manualBomJson}
-              onChange={(e) => setManualBomJson(e.target.value)}
-              placeholder='[{"key":"R1","quantity":1,"description":"10k"},...]'
-              className="w-full h-24 rounded-lg border border-slate-200 p-2 text-sm font-mono"
-            />
-            <button
-              type="button"
-              onClick={onUseFromJson}
-              className="mt-2 rounded-lg bg-slate-600 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700"
-            >
-              Use manual BOM from JSON
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
-export default function App() {
+export default function App({ disableCopilot = false }) {
   const [file, setFile] = useState(null)
   const [chaosMode, setChaosMode] = useState(false)
   const [extracting, setExtracting] = useState(false)
@@ -371,11 +226,6 @@ export default function App() {
   const [logEntries, setLogEntries] = useState([])
   const [toast, setToast] = useState(null)
   const [debugMessage, setDebugMessage] = useState(null)
-  const [manualBomJson, setManualBomJson] = useState('')
-  const [tableRows, setTableRows] = useState(() => [
-    { id: 'row-1', ref: '', componentType: '', value: '', pkg: '', quantity: '' },
-    { id: 'row-2', ref: '', componentType: '', value: '', pkg: '', quantity: '' },
-  ])
   const pollRef = useRef(null)
 
   const addLog = useCallback((msg) => {
@@ -456,39 +306,6 @@ export default function App() {
     return getSubstitutes(baseKey, qty)
   }, [])
 
-  const applyManualBom = useCallback(
-    (items) => {
-      setResult(items)
-      setStatus('done')
-      setJobId(null)
-      stopPolling()
-      showToast('Manual BOM loaded')
-    },
-    [stopPolling, showToast]
-  )
-
-  const handleUseManualBomFromTable = useCallback(
-    (items) => {
-      applyManualBom(items)
-    },
-    [applyManualBom]
-  )
-
-  const handleUseManualBomFromJson = useCallback(() => {
-    try {
-      const parsed = JSON.parse(manualBomJson)
-      const items = Array.isArray(parsed) ? parsed : parsed?.items ?? parsed?.components ?? []
-      if (items.length) {
-        applyManualBom(items)
-      } else {
-        showToast('JSON has no BOM items array', true)
-      }
-    } catch (e) {
-      setDebugMessage(e.message)
-      showToast('Invalid JSON: ' + e.message, true)
-    }
-  }, [manualBomJson, applyManualBom, showToast])
-
   const handleExportCsv = useCallback(() => {
     if (!result?.length) {
       showToast('No BOM to export', true)
@@ -503,8 +320,24 @@ export default function App() {
   // Step indicator: 1 Upload (default), 2 Extract (analyze clicked / polling), 3 Optimize (BOM + substitutes ready)
   const currentStep = bomItems.length > 0 ? 3 : extracting || (jobId && status !== 'done') ? 2 : 1
 
+  const handleAnalyzeForCopilot = useCallback(() => {
+    if (file) handleExtract(file)
+  }, [file, handleExtract])
+
   return (
-    <div className="min-h-screen page-bg flex flex-col">
+    <div className="min-h-screen ui-page-bg ui-page-grid flex flex-col">
+      {!disableCopilot && (
+        <CopilotBridge
+          currentStep={currentStep}
+          chaosMode={chaosMode}
+          bomItems={bomItems}
+          hasFile={!!file}
+          onAnalyze={handleAnalyzeForCopilot}
+          onToggleChaosMode={setChaosMode}
+          onExportCsv={handleExportCsv}
+          setStep={undefined}
+        />
+      )}
       <HeaderStepper
         currentStep={currentStep}
         statusText="Schematic → BOM → Substitutes"
@@ -524,31 +357,23 @@ export default function App() {
         <BOMList items={bomItems} onFetchSubstitutes={handleFetchSubstitutes} />
 
         <div className="flex flex-wrap items-center gap-3">
-          <button
+          <motion.button
             type="button"
             onClick={handleExportCsv}
             disabled={!bomItems.length}
-            className="rounded-lg bg-emerald-600 px-5 py-2.5 text-sm font-medium text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="rounded-xl bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            whileHover={bomItems.length ? { y: -1, boxShadow: '0 4px 12px rgba(5, 150, 105, 0.3)' } : {}}
+            whileTap={bomItems.length ? { scale: 0.98 } : {}}
           >
             Export CSV
-          </button>
+          </motion.button>
         </div>
-
-        <ManualBOMSection
-          tableRows={tableRows}
-          setTableRows={setTableRows}
-          onUseFromTable={handleUseManualBomFromTable}
-          manualBomJson={manualBomJson}
-          setManualBomJson={setManualBomJson}
-          onUseFromJson={handleUseManualBomFromJson}
-          showToast={showToast}
-        />
 
         {debugMessage && (
           <div className="rounded-xl border border-amber-200 bg-amber-50 p-5">
             <p className="text-sm font-semibold text-amber-800 mb-1">Debug / last error</p>
             <pre className="text-xs text-amber-900 whitespace-pre-wrap break-all">{debugMessage}</pre>
-            <p className="text-xs text-amber-700 mt-2">If backend is down, use Manual BOM paste above to demo.</p>
+            <p className="text-xs text-amber-700 mt-2">Check backend connection or try again.</p>
           </div>
         )}
       </main>
