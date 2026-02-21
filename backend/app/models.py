@@ -118,3 +118,11 @@ class QuoteResponse(BaseModel):
     lines: list[QuoteLineItem] = Field(default_factory=list)
     totals: dict[str, float]
     warnings: list[str] = Field(default_factory=list)
+
+
+class PipelineDemoResponse(BaseModel):
+    request_id: str
+    extract: ExtractResponse
+    substitutes: SubstituteResponse
+    quote: QuoteResponse
+    warnings: list[str] = Field(default_factory=list)

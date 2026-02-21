@@ -1,5 +1,7 @@
 """Extraction routes."""
 
+from pathlib import Path
+
 from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
 from app.config import settings
@@ -18,6 +20,8 @@ extractor = BedrockBomExtractor()
 @router.post("", response_model=ExtractResponse)
 async def extract(request: Request, image: UploadFile = File(...)) -> ExtractResponse:
     image_bytes = await image.read()
+    image_ext = Path(image.filename or "").suffix.lower().lstrip(".")
+    image_format = "jpeg" if image_ext in {"jpg", "jpeg"} else "png"
     with tracer.trace("bedrock.extract_bom") as span:
         model_id = settings.bedrock_model_id
         try:
@@ -42,6 +46,8 @@ async def extract(request: Request, image: UploadFile = File(...)) -> ExtractRes
         span.set_tag("bedrock.model_id", model_id)
         span.set_tag("bom.parse_warnings_count", len(warnings))
         span.set_tag("bom.size", len(bom))
+        span.set_tag("image.bytes", len(image_bytes))
+        span.set_tag("image.format", image_format)
 
         if parse_error is not None:
             detail = parse_error.removeprefix(PARSE_ERROR_WARNING_PREFIX).strip()

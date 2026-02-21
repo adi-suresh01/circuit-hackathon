@@ -76,6 +76,7 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `POST /graph/chaos/toggle` (flips in-memory chaos flag)
 - `POST /incident/narrate` -> `NarrateResponse` (MiniMax-backed, requires enable flag + API key)
 - `POST /quote/digikey` -> `QuoteResponse` (Digi-Key supplier offers and chosen line pricing)
+- `POST /pipeline/demo` (multipart `image`) -> end-to-end `extract + substitutes + quote` response
 
 When chaos mode is enabled, substitute lookups add a 1.5s artificial delay and
 `SubstituteResponse.warnings` includes a chaos warning.
@@ -142,6 +143,13 @@ curl -X POST http://127.0.0.1:8000/quote/digikey \
     "prefer_in_stock": true,
     "exclude_marketplace": true
   }'
+```
+
+Example end-to-end pipeline request:
+
+```bash
+curl -X POST "http://127.0.0.1:8000/pipeline/demo?prefer_in_stock=true&exclude_marketplace=true&limit=5" \
+  -F "image=@../schematic.png"
 ```
 
 ## Docker

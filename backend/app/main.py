@@ -14,7 +14,7 @@ from fastapi.responses import JSONResponse
 
 from app.config import settings
 from app.logging_config import configure_logging, request_id_ctx_var
-from app.routes import extract, graph, health, incident, quote
+from app.routes import extract, graph, health, incident, pipeline, quote
 
 configure_logging(settings.log_level)
 logger = logging.getLogger(__name__)
@@ -55,6 +55,7 @@ app.include_router(extract.router)
 app.include_router(graph.router)
 app.include_router(incident.router)
 app.include_router(quote.router)
+app.include_router(pipeline.router)
 
 
 @app.on_event("shutdown")
