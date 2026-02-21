@@ -1,0 +1,30 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Title gradient and shadow so it pops */
+.title-brand {
+  font-size: 1.75rem;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 50%, #6d28d9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 1px 2px rgba(79, 70, 229, 0.2));
+}
+.title-brand::selection {
+  -webkit-text-fill-color: white;
+  background: #4f46e5;
+}
+
+/* Softer page background */
+.page-bg {
+  background-color: #f8fafc;
+  background-image: radial-gradient(ellipse at top, rgba(99, 102, 241, 0.04) 0%, transparent 50%);
+}
