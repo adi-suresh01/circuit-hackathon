@@ -1,45 +1,54 @@
 """Extraction routes."""
 
-from fastapi import APIRouter, File, Request, UploadFile
+from fastapi import APIRouter, File, HTTPException, Request, UploadFile
 
-from app.models import BomItem, ExtractResponse
+from app.config import settings
+from app.models import ExtractResponse
+from app.services.bedrock_vision import (
+    PARSE_ERROR_WARNING_PREFIX,
+    BedrockBomExtractor,
+    BedrockExtractionError,
+)
 from app.tracing import tracer
 
 router = APIRouter(prefix="/extract", tags=["extract"])
-DEFAULT_BEDROCK_MODEL_ID = "anthropic.claude-3-haiku-20240307-v1:0"
-
-
-def _extract_bom_with_bedrock_placeholder(
-    image_bytes: bytes, filename: str | None
-) -> tuple[list[BomItem], list[str], str]:
-    _ = image_bytes
-    _ = filename
-
-    bom = [
-        BomItem(
-            refdes="R1",
-            type="resistor",
-            value="10k",
-            package="0603",
-            qty=1,
-            confidence=0.82,
-            notes="placeholder extracted item",
-        )
-    ]
-    warnings = ["placeholder extraction response"]
-    return bom, warnings, DEFAULT_BEDROCK_MODEL_ID
+extractor = BedrockBomExtractor()
 
 
 @router.post("", response_model=ExtractResponse)
 async def extract(request: Request, image: UploadFile = File(...)) -> ExtractResponse:
     image_bytes = await image.read()
     with tracer.trace("bedrock.extract_bom") as span:
-        bom, warnings, model_id = _extract_bom_with_bedrock_placeholder(
-            image_bytes=image_bytes,
-            filename=image.filename,
+        model_id = settings.bedrock_model_id
+        try:
+            bom, warnings, model_id = await extractor.extract_bom(
+                image_bytes=image_bytes,
+                filename=image.filename,
+            )
+        except BedrockExtractionError as exc:
+            span.set_tag("bedrock.model_id", model_id)
+            span.set_tag("bom.parse_warnings_count", 1)
+            span.set_tag("bom.size", 0)
+            raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+        parse_error = next(
+            (
+                warning
+                for warning in warnings
+                if warning.startswith(PARSE_ERROR_WARNING_PREFIX)
+            ),
+            None,
         )
         span.set_tag("bedrock.model_id", model_id)
         span.set_tag("bom.parse_warnings_count", len(warnings))
+        span.set_tag("bom.size", len(bom))
+
+        if parse_error is not None:
+            detail = parse_error.removeprefix(PARSE_ERROR_WARNING_PREFIX).strip()
+            raise HTTPException(
+                status_code=502,
+                detail=f"Failed to parse Bedrock BOM output: {detail}",
+            )
 
     request_id = str(getattr(request.state, "request_id", "unknown"))
     return ExtractResponse(

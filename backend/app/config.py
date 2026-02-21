@@ -11,6 +11,12 @@ from pydantic import BaseModel, Field
 from app.utils.digikey import normalize_digikey_account_id
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+DEFAULT_BEDROCK_MODEL_ID = "nvidia.nemotron-nano-12b-v2"
+DEFAULT_BOM_EXTRACTION_PROMPT = (
+    "Extract and list all the components from this schematic image of a hardware "
+    "diagram. Return ONLY valid JSON array of objects with fields: refdes(optional), "
+    "type, value, package(optional), qty(integer). No extra text."
+)
 
 
 class Config(BaseModel):
@@ -20,6 +26,8 @@ class Config(BaseModel):
     app_env: str = Field(default="local")
     log_level: str = Field(default="INFO")
     aws_region: str = Field(default="us-east-1")
+    bedrock_model_id: str = Field(default=DEFAULT_BEDROCK_MODEL_ID)
+    bom_extraction_prompt: str = Field(default=DEFAULT_BOM_EXTRACTION_PROMPT)
     neo4j_uri: str = Field(default="bolt://localhost:7687")
     neo4j_username: str = Field(default="neo4j")
     neo4j_password: str = Field(default="circuit-dev-password")
@@ -67,6 +75,9 @@ class Config(BaseModel):
             app_env=os.getenv("APP_ENV", os.getenv("ENV", "local")),
             log_level=os.getenv("LOG_LEVEL", "INFO"),
             aws_region=os.getenv("AWS_REGION", "us-east-1"),
+            bedrock_model_id=os.getenv("BEDROCK_MODEL_ID", DEFAULT_BEDROCK_MODEL_ID),
+            bom_extraction_prompt=os.getenv("BOM_EXTRACTION_PROMPT")
+            or DEFAULT_BOM_EXTRACTION_PROMPT,
             neo4j_uri=os.getenv("NEO4J_URI", "bolt://localhost:7687"),
             neo4j_username=os.getenv(
                 "NEO4J_USERNAME", os.getenv("NEO4J_USER", "neo4j")

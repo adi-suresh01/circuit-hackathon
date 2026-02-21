@@ -1,0 +1,92 @@
+{
+  "family": "${ECS_TASK_FAMILY}",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "${TASK_CPU}",
+  "memory": "${TASK_MEMORY}",
+  "executionRoleArn": "${TASK_EXECUTION_ROLE_ARN}",
+  "taskRoleArn": "${TASK_ROLE_ARN}",
+  "containerDefinitions": [
+    {
+      "name": "datadog-agent",
+      "image": "public.ecr.aws/datadog/agent:7",
+      "essential": false,
+      "environment": [
+        {"name": "ECS_FARGATE", "value": "true"},
+        {"name": "DD_SITE", "value": "${DD_SITE}"},
+        {"name": "DD_ENV", "value": "${DD_ENV}"},
+        {"name": "DD_APM_ENABLED", "value": "true"},
+        {"name": "DD_LOGS_ENABLED", "value": "true"},
+        {"name": "DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL", "value": "true"},
+        {"name": "DD_DOGSTATSD_NON_LOCAL_TRAFFIC", "value": "true"}
+      ],
+      "secrets": [
+        {"name": "DD_API_KEY", "valueFrom": "${DD_API_KEY_SECRET_ARN}"}
+      ],
+      "portMappings": [
+        {"containerPort": 8126, "protocol": "tcp"},
+        {"containerPort": 8125, "protocol": "udp"}
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${DD_LOG_GROUP}",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "datadog-agent"
+        }
+      }
+    },
+    {
+      "name": "backend",
+      "image": "${APP_IMAGE}",
+      "essential": true,
+      "portMappings": [
+        {"containerPort": 8080, "protocol": "tcp"}
+      ],
+      "environment": [
+        {"name": "APP_ENV", "value": "production"},
+        {"name": "LOG_LEVEL", "value": "${LOG_LEVEL}"},
+        {"name": "AWS_REGION", "value": "${AWS_REGION}"},
+        {"name": "BEDROCK_MODEL_ID", "value": "${BEDROCK_MODEL_ID}"},
+        {"name": "NEO4J_URI", "value": "${NEO4J_URI}"},
+        {"name": "NEO4J_USERNAME", "value": "${NEO4J_USERNAME}"},
+        {"name": "DIGIKEY_USE_SANDBOX", "value": "${DIGIKEY_USE_SANDBOX}"},
+        {"name": "DIGIKEY_ACCOUNT_ID", "value": "${DIGIKEY_ACCOUNT_ID}"},
+        {"name": "DIGIKEY_LOCALE_SITE", "value": "${DIGIKEY_LOCALE_SITE}"},
+        {"name": "DIGIKEY_LOCALE_LANGUAGE", "value": "${DIGIKEY_LOCALE_LANGUAGE}"},
+        {"name": "DIGIKEY_LOCALE_CURRENCY", "value": "${DIGIKEY_LOCALE_CURRENCY}"},
+        {"name": "DIGIKEY_HTTP_TIMEOUT_S", "value": "${DIGIKEY_HTTP_TIMEOUT_S}"},
+        {"name": "ENABLE_MINIMAX_NARRATOR", "value": "${ENABLE_MINIMAX_NARRATOR}"},
+        {"name": "MINIMAX_BASE_URL", "value": "${MINIMAX_BASE_URL}"},
+        {"name": "MINIMAX_MODEL", "value": "${MINIMAX_MODEL}"},
+        {"name": "DD_SERVICE", "value": "${DD_SERVICE}"},
+        {"name": "DD_ENV", "value": "${DD_ENV}"},
+        {"name": "DD_VERSION", "value": "${IMAGE_TAG}"},
+        {"name": "DD_AGENT_HOST", "value": "127.0.0.1"},
+        {"name": "DD_TRACE_ENABLED", "value": "true"},
+        {"name": "DD_LOGS_INJECTION", "value": "true"}
+      ],
+      "secrets": [
+        {"name": "NEO4J_PASSWORD", "valueFrom": "${NEO4J_PASSWORD_SECRET_ARN}"}
+      ],
+      "healthCheck": {
+        "command": [
+          "CMD-SHELL",
+          "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8080/health', timeout=2).read()\""
+        ],
+        "interval": 15,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 20
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "${APP_LOG_GROUP}",
+          "awslogs-region": "${AWS_REGION}",
+          "awslogs-stream-prefix": "backend"
+        }
+      }
+    }
+  ]
+}

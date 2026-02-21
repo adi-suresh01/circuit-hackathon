@@ -41,6 +41,8 @@ Python FastAPI scaffold for the circuit hackathon backend.
 - `APP_ENV`: `local` or `production` (`local` loads `.env` via `python-dotenv`).
 - `LOG_LEVEL`: Logging level (`INFO`, `DEBUG`, etc.).
 - `AWS_REGION`: Default AWS region.
+- `BEDROCK_MODEL_ID`: Bedrock model ID for BOM extraction (`nvidia.nemotron-nano-12b-v2` by default).
+- `BOM_EXTRACTION_PROMPT`: Optional prompt override for `/extract` BOM parsing.
 - `NEO4J_URI`: Neo4j connection URI.
 - `NEO4J_USERNAME`: Neo4j username.
 - `NEO4J_PASSWORD`: Neo4j password.
@@ -158,3 +160,12 @@ cd backend
 docker build -t circuit-backend .
 docker run --rm -p 8080:8080 circuit-backend
 ```
+
+## AWS Fargate + Datadog
+
+Production deployment assets are in `backend/deploy/`:
+
+- `backend/deploy/deploy_fargate.sh`: build/push/register task-def/update service.
+- `backend/deploy/ecs-taskdef.fargate.datadog.tpl.json`: task-def template (app + Datadog sidecar).
+- `backend/deploy/smoke_test.sh`: post-deploy endpoint checks.
+- `backend/deploy/README.md`: exact environment variables and command flow.
